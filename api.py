@@ -52,8 +52,7 @@ SEL_INPUTS = [
     '[data-testid="prompt-textarea"]',
     'div.ProseMirror[contenteditable="true"]',
     'div[contenteditable="true"]',
-    "textarea",
-]
+]  # không dùng "textarea": đó là ô tạm (pending-home-input) bị thay khi trang tải xong
 SEL_ASSISTANT = '[data-markdown-text-style="assistant-message"], [data-message-author-role="assistant"]'
 SEL_STOP = '[data-testid="stop-button"], button[aria-label*="Stop"]'
 
@@ -186,9 +185,17 @@ async def stable_count(page, quiet=1.5, timeout=15):
 
 
 async def ask(page, text):
+    await page.bring_to_front()  # tab nền không vẽ khung hình -> click bị treo
     before = await stable_count(page, quiet=0.4, timeout=3)
-    box = await wait_input(page, 15)
-    await box.click()
+    for attempt in range(4):
+        box = await wait_input(page, 30)
+        try:
+            await box.click(timeout=5000)
+            break
+        except Exception:
+            if attempt == 3:
+                raise HTTPException(503, "Không bấm được vào ô chat.")
+            await asyncio.sleep(1)
     await page.keyboard.insert_text(text)
     await page.keyboard.press("Enter")
 
