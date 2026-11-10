@@ -21,7 +21,7 @@ RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 # Phiên đăng nhập + danh sách cuộc hội thoại nằm trong /data (phải khai là thư mục bền)
 ENV PROFILE_DIR=/data/profile \
     OWNERS_FILE=/data/conversations.json \
-    HEADLESS=0 \
+    HEADLESS=new \
     DISPLAY=:99 \
     MAX_TABS=2 \
     PORT=8000

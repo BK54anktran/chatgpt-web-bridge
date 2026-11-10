@@ -3,7 +3,8 @@
 Biến môi trường:
   API_KEY       một khóa duy nhất, hoặc
   API_KEYS      nhiều khóa: "duan1:khoa1,duan2:khoa2"
-  HEADLESS      1 = chạy ẩn (mặc định 0, vì headless dễ bị Cloudflare chặn)
+  HEADLESS      0 = có cửa sổ (mặc định) | new = Chromium headless mới, không cần màn hình
+                | 1 = headless-shell cũ (dễ bị Cloudflare chặn)
   IDLE_TAB      giây không dùng thì đóng tab của cuộc hội thoại (mặc định 300)
   IDLE_BROWSER  giây không còn tab nào thì tắt hẳn trình duyệt (mặc định 600)
   MAX_TABS      số tab/cuộc hội thoại mở cùng lúc tối đa (mặc định 5)
@@ -37,7 +38,7 @@ BASE = Path(__file__).parent
 URL = "https://chatgpt.com/"
 PROFILE = Path(os.environ.get("PROFILE_DIR", BASE / "profile"))
 OWNERS_FILE = Path(os.environ.get("OWNERS_FILE", BASE / "conversations.json"))
-HEADLESS = os.environ.get("HEADLESS", "0") == "1"
+HEADLESS_MODE = os.environ.get("HEADLESS", "0").lower()  # 0 | 1 | new
 IDLE_TAB = int(os.environ.get("IDLE_TAB", "300"))
 IDLE_BROWSER = int(os.environ.get("IDLE_BROWSER", "600"))
 MAX_TABS = int(os.environ.get("MAX_TABS", "5"))
@@ -123,11 +124,17 @@ async def ensure_browser():
                 return ctx
             except Exception:
                 ctx = None
+        opts = {}
+        if HEADLESS_MODE == "new":
+            # Chromium đầy đủ ở chế độ headless mới: không cần màn hình ảo, ít bị Cloudflare nhận ra
+            opts = {"headless": True, "channel": "chromium"}
+        else:
+            opts = {"headless": HEADLESS_MODE == "1"}
         ctx = await pw.chromium.launch_persistent_context(
             str(PROFILE),
-            headless=HEADLESS,
             viewport={"width": 1100, "height": 800},
             args=["--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"],
+            **opts,
         )
         ctx.on("close", lambda *_: tabs.clear())
         return ctx

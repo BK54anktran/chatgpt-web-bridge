@@ -5,8 +5,11 @@ set -e
 mkdir -p /data/profile
 rm -f /tmp/.X99-lock /data/profile/SingletonLock /data/profile/SingletonCookie /data/profile/SingletonSocket
 
-Xvfb :99 -screen 0 1280x900x24 -nolisten tcp &
-sleep 1
+# Màn hình ảo chỉ cần khi đăng nhập (setup) hoặc khi HEADLESS=0
+if [ "$MODE" = "setup" ] || [ "$HEADLESS" = "0" ]; then
+  Xvfb :99 -screen 0 1280x900x24 -nolisten tcp &
+  sleep 1
+fi
 
 if [ "$MODE" = "setup" ]; then
   if [ -z "$VNC_PASSWORD" ]; then
