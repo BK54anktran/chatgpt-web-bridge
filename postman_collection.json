@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "ChatGPT web bridge",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{api_key}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "api_key", "value": "doi-chuoi-nay-thanh-khoa-bi-mat" },
+    { "key": "conversation_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health (không cần key)",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Chat - cuộc hội thoại MỚI",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('conversation_id', pm.response.json().conversation_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Xin chào, hãy nhớ giúp tôi: số bí mật là 42\"\n}"
+        },
+        "url": "{{base_url}}/chat"
+      }
+    },
+    {
+      "name": "Chat - NỐI TIẾP (dùng conversation_id đã lưu)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Số bí mật tôi vừa nói là gì?\",\n  \"conversation_id\": \"{{conversation_id}}\"\n}"
+        },
+        "url": "{{base_url}}/chat"
+      }
+    },
+    {
+      "name": "OpenAI-style - cuộc mới",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('conversation_id', pm.response.json().conversation_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"messages\": [{ \"role\": \"user\", \"content\": \"Xin chào\" }]\n}"
+        },
+        "url": "{{base_url}}/v1/chat/completions"
+      }
+    },
+    {
+      "name": "OpenAI-style - nối tiếp",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"messages\": [{ \"role\": \"user\", \"content\": \"Tiếp tục nhé\" }],\n  \"conversation_id\": \"{{conversation_id}}\"\n}"
+        },
+        "url": "{{base_url}}/v1/chat/completions"
+      }
+    },
+    {
+      "name": "Danh sách tab đang mở",
+      "request": { "method": "GET", "url": "{{base_url}}/conversations" }
+    },
+    {
+      "name": "Đóng tab cuộc hội thoại",
+      "request": { "method": "DELETE", "url": "{{base_url}}/conversations/{{conversation_id}}" }
+    }
+  ]
+}

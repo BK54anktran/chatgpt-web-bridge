@@ -1,0 +1,6 @@
+profile/
+.venv/
+__pycache__/
+conversations.json
+shot.png
+*.log
