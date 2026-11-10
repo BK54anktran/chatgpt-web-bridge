@@ -2,8 +2,9 @@
 # MODE=api   (mặc định): chạy API.
 # MODE=setup : mở trình duyệt thật qua noVNC (/vnc.html) để bạn đăng nhập ChatGPT lần đầu.
 set -e
-mkdir -p /data/profile
-rm -f /tmp/.X99-lock /data/profile/SingletonLock /data/profile/SingletonCookie /data/profile/SingletonSocket
+PROFILE="${PROFILE_DIR:-/data/profile}"
+mkdir -p "$PROFILE"
+rm -f /tmp/.X99-lock "$PROFILE/SingletonLock" "$PROFILE/SingletonCookie" "$PROFILE/SingletonSocket"
 
 # Màn hình ảo chỉ cần khi đăng nhập (setup) hoặc khi HEADLESS=0
 if [ "$MODE" = "setup" ] || [ "$HEADLESS" = "0" ]; then
@@ -19,7 +20,7 @@ if [ "$MODE" = "setup" ]; then
   x11vnc -storepasswd "$VNC_PASSWORD" /tmp/vncpass
   x11vnc -display :99 -rfbauth /tmp/vncpass -forever -shared -rfbport 5900 -localhost -quiet &
   CHROME=$(python -c "from playwright.sync_api import sync_playwright as s; p=s().start(); print(p.chromium.executable_path); p.stop()")
-  "$CHROME" --no-sandbox --disable-dev-shm-usage --user-data-dir=/data/profile \
+  "$CHROME" --no-sandbox --disable-dev-shm-usage --user-data-dir="$PROFILE" \
       --window-position=0,0 --window-size=1270,880 https://chatgpt.com/ &
   echo "Setup: mở /vnc.html để đăng nhập"
   exec websockify --web /usr/share/novnc "${PORT:-8000}" localhost:5900
