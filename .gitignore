@@ -4,3 +4,4 @@ __pycache__/
 conversations.json
 shot.png
 *.log
+*.local.json
