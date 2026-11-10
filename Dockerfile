@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Xvfb = màn hình ảo; x11vnc + noVNC chỉ dùng ở MODE=setup để đăng nhập lần đầu
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        xvfb x11vnc novnc websockify procps fonts-noto-color-emoji \
+        xvfb x11vnc novnc websockify procps fonts-noto-color-emoji libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
